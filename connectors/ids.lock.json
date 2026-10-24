@@ -544,6 +544,7 @@
         "saperly#sync-numbers",
         "saperly#update-numbers",
         "string#fetch",
+        "string#request",
         "string#search",
         "surf#dex/token/price",
         "surf#exchange/candles",
