@@ -118,6 +118,43 @@ Deno.test("string#search happy: an AI Mode answer settles at one search", async 
     );
 });
 
+Deno.test("string#search: a search that comes back with nothing settles at zero", async () => {
+    const unit = await testSealedUnit("string#search");
+    // recorded: no results and nothing else on the page, though
+    // zeroResults is false and String billed the search
+    const noMatch = await runEndpoint({
+        unit,
+        input: {
+            body: {
+                query: '"qzxvplorktanu fnarglewibbet 88127"',
+                autocorrect: false,
+            },
+        },
+        mode: "replay",
+        fixture: await loadFixture(`${fixturesDir}search-no-match.json`),
+    });
+    assertEquals(noMatch.isProviderError, false);
+    assertEquals(noMatch.usage, {
+        credits: {},
+        evidence: { search: 0, ai_overview: 0 },
+    });
+    // Google's own no-match flag wins over any other field, and over
+    // the aiOverview line
+    const zero = await runEndpoint({
+        unit,
+        input: { body: { query: "heat pump grnts", aiOverview: true } },
+        mode: "replay",
+        fixture: await loadFixture(
+            `${fixturesDir}synthetic-search-zero-results.json`,
+        ),
+    });
+    assertEquals(zero.isProviderError, false);
+    assertEquals(zero.usage, {
+        credits: {},
+        evidence: { search: 0, ai_overview: 0 },
+    });
+});
+
 Deno.test("string#search provider error (synthetic 401): zero usage", async () => {
     const unit = await testSealedUnit("string#search");
     const fixture = await loadFixture(

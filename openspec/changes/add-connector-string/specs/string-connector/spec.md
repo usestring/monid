@@ -20,7 +20,10 @@ two `PER_UNIT`·`PAGE` lines at the Growth-tier search rate ($0.001):
 36-page cap (an admission hold that settlement can never exceed), and 1
 `ai_overview` exactly when `aiOverview` is true. Evidence SHALL settle
 `search` from `paging.pages` when the response carries it, else 1, and
-`ai_overview` as the estimate does.
+`ai_overview` as the estimate does — except that a search that comes back
+with nothing SHALL settle both lines at 0: a response with
+`zeroResults: true`, or one whose `results` and every other field but
+`zeroResults` and `paging` are empty.
 
 #### Scenario: No searchCount settles at exactly one page
 
@@ -41,6 +44,19 @@ two `PER_UNIT`·`PAGE` lines at the Growth-tier search rate ($0.001):
   one results page
 - **THEN** usage is
   `{credits: {default: 0.002}, evidence: {search: 1, ai_overview: 1}}`
+
+#### Scenario: A search that comes back with nothing settles at zero
+
+- **WHEN** `POST /search` returns 200 with `{results: [], zeroResults:
+  false}` and no other field, or with `zeroResults: true`
+- **THEN** usage evidence is `{search: 0, ai_overview: 0}` and no credit is
+  charged
+
+#### Scenario: An answer without organic results still bills
+
+- **WHEN** `POST /search` with `engine: "google_ai_mode"` returns an empty
+  `results` beside an `aiMode` answer
+- **THEN** usage evidence is `{search: 1, ai_overview: 0}`
 
 #### Scenario: engine defaults to google and offers only google and AI Mode
 

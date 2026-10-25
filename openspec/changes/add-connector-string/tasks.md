@@ -27,7 +27,8 @@
       `google`/`google_ai_mode` and defaulted to `google` at the binding,
       `COMPOSITE` of `search` and `ai_overview` `PER_UNIT`·`PAGE` lines,
       estimate/evidence keyed off `searchCount`, `aiOverview` and
-      `paging.pages`
+      `paging.pages`, and a zero settle for a search that comes back with
+      nothing
 - [x] 3.2 `fetch` — provider-shared strict `/fetch` mirror (`jsonSchema`
       excluded, no published flat rate), picked down to the GET fields with
       `format: markdown` and `solveCaptcha: false` defaults, single-tick
@@ -44,13 +45,14 @@
 
 ## 4. Fixtures + tests
 
-- [x] 4.1 Synthetic provider-level fixtures (`synthetic-` prefix) for all
-      three endpoints, built from the vendor's own published example bodies;
-      each `description` says it should be replaced by a real
-      `deno task record` capture
+- [x] 4.1 Provider-level shared chains: real `deno task record` captures
+      (2026-10-24, hand-minimized) for the three happy paths and a no-match
+      search; synthetic ones (`synthetic-` prefix), built from the vendor's
+      own published example bodies, for the billed types and shapes a plain
+      recording cannot produce
 - [x] 4.2 Per-endpoint replay tests: `search` (one page, paged, AI overview,
-      raw HTML, AI Mode, schema defaults), `fetch` (happy path per
-      billed-type fixture including non-default classes, so the test proves
+      raw HTML, AI Mode, nothing back, schema defaults), `fetch` (happy path
+      per billed-type fixture including non-default classes, so the test proves
       the correct line is picked rather than always the cheap floor; the
       defaults on the wire; the fns shared with `request`), `request`
       (standard and premium lines, a line outside its model, the defaults on

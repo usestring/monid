@@ -22,10 +22,12 @@ every Monid-integrated agent.
     when `aiOverview: true` fills the overview Google streams in. Without
     `searchCount` (1-300), always 1 page; with it, Google pages further
     results (up to 36) to collect enough, and the estimate holds that 36-page
-    cap. Evidence reads `paging.pages` when present, else 1. The binding
-    offers `engine` `google` (default) and `google_ai_mode`, the engines
-    String's `/v3` search tool offers; the mirror keeps the vendor's full
-    list.
+    cap. Evidence reads `paging.pages` when present, else 1, and settles
+    0 for a search that comes back with nothing (Google reports no match,
+    or no results and no other part of the page), as Monid absorbs a run
+    that returns no results. The binding offers `engine` `google`
+    (default) and `google_ai_mode`, the engines String's `/v3` search tool
+    offers; the mirror keeps the vendor's full list.
   - `string#fetch` (`POST /fetch` with a GET, reads only): Markdown by
     default, `solveCaptcha` false unless the caller sets it, and no method,
     body, browser actions or screenshots on the input. `COMPOSITE` of five

@@ -37,6 +37,14 @@ import { zSearchBody } from "./schema/inputs.ts";
  * `format: "raw"` response is the results page as HTML, so the path is
  * absent and it settles at 1 too.
  *
+ * NOTHING BACK, NOTHING BILLED: a search that comes back with nothing for
+ * the caller settles at zero, as Monid absorbs a run that returns no
+ * results. String itself still bills it (a recorded no-match search
+ * carries `x-billed-request-type: search`). "Nothing" is Google reporting
+ * no match (`zeroResults: true`), or a response whose `results` and every
+ * other part of the page are empty — an AI Mode answer, a local pack or
+ * an images tab with empty `results` still answered, and still bills.
+ *
  * PRICING: String's rate is plan-tier USD ($1.50/1,000 on Starter, $1.00/
  * 1,000 on Growth — portal.usestring.ai/docs/get-started/pricing
  * "Search", retrieved 2026-10-24), not a vendor "credits" abstraction, and
@@ -138,10 +146,22 @@ export default defineEndpoint({
             return { counts: { search: 36, ai_overview: aiOverview } };
         },
         evidence: ({ data, utils }) => {
-            const pages = utils.json.optionalNum(
-                data.output,
-                "$.paging.pages",
-            );
+            const output = data.output;
+            const nothing = typeof output === "object" && output !== null &&
+                !Array.isArray(output) &&
+                (output.zeroResults === true ||
+                    Object.entries(output).every(([key, value]) =>
+                        key === "zeroResults" || key === "paging" ||
+                        value === null ||
+                        (Array.isArray(value)
+                            ? value.length === 0
+                            : typeof value === "object" &&
+                                Object.keys(value).length === 0)
+                    ));
+            if (nothing) {
+                return { counts: { search: 0, ai_overview: 0 } };
+            }
+            const pages = utils.json.optionalNum(output, "$.paging.pages");
             const body = data.input.body;
             return {
                 counts: {
